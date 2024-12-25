@@ -1,3 +1,10 @@
-Checks: 'modernize-*, readability-*, performance-*'
+Checks: >
+  clang-analyzer-*,
+  modernize-*,
+  readability-*,
+  performance-*,
+  cppcoreguidelines-*,
+  bugprone-*
 WarningsAsErrors: 'modernize-*'
-FormatStyle: 'file'
+HeaderFilterRegex: '.*'
+FormatStyle: google

@@ -8,4 +8,4 @@ if [ ! -f "./compile_commands.json" ]; then
 fi
 
 # Exécuter run-clang-tidy
-run-clang-tidy -p . -header-filter=".*" -fix
+run-clang-tidy -p . -header-filter=".*" -fix -j $(nproc) -quiet

@@ -30,13 +30,13 @@
 
 #include <iostream>
 
+
 /**
  * @brief Entry point of the program.
  * 
- * This function is the main entry point of the program. It prints "Hello, World!" 
- * to the standard output and returns 0 to indicate successful execution.
+ * This function prints "Hello, World!" to the standard output.
  * 
- * @return int Returns 0 to indicate successful execution.
+ * @return int Returns 0 upon successful execution.
  */
 auto main() -> int {
     std::cout << "Hello, World!" << '\n';
