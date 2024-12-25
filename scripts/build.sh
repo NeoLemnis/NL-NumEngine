@@ -33,15 +33,3 @@ if ! make; then
   exit 1
 fi
 echo -e "Make ran successfully\n"
-
-# If the executable does not exist, exit the script
-echo "Checking for executable ..."
-if [ ! -f "NL-NumEngine" ]; then
-  exit 1
-fi
-echo -e "Executable found\n"
-
-echo -e "Running the executable ...\n"
-
-# Run the executable
-./NL-NumEngine

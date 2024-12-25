@@ -123,7 +123,7 @@ public:
 
     /**
      * @brief Scalar multiplication of the matrix.
-     * 
+     *
      * @param scalar The scalar value.
      * @return Matrix<m, n, T> The result of the scalar multiplication.
      */
@@ -142,7 +142,7 @@ public:
 
     /**
      * @brief Scalar multiplication of the matrix.
-     * 
+     *
      * @param scalar The scalar value.
      * @return Matrix<m, n, T>& Reference to this matrix.
      */
@@ -171,7 +171,7 @@ public:
         {
             for (size_t j = 0; j < n; ++j)
             {
-                result(i, j) = data[i][j] + other(i, j);
+                result(i, j) = data.at(i).at(j) + other(i, j);
             }
         }
         return result;
@@ -290,6 +290,17 @@ public:
     auto operator!=(const Matrix<m, n, T> &other) const -> bool
     {
         return !(*this == other);
+    }
+
+    /**
+     * @brief Get the matrix data as a 2D array.
+     *
+     * @return std::array<std::array<T, n>, m> The matrix data.
+     * @note This function is mainly for testing purposes.
+     */
+    [[nodiscard]] auto to_array() const -> std::array<std::array<T, n>, m>
+    {
+        return data;
     }
 
     /**
