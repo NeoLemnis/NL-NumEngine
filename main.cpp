@@ -38,7 +38,7 @@
  * 
  * @return int Returns 0 to indicate successful execution.
  */
-int main() {
-    std::cout << "Hello, World!" << std::endl;
+auto main() -> int {
+    std::cout << "Hello, World!" << '\n';
     return 0;
 }

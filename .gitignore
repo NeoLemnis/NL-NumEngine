@@ -1,2 +1,6 @@
+.hidden/
+
 build/
 html/
+
+compile_commands.json
