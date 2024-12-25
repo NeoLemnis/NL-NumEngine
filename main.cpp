@@ -26,19 +26,33 @@
  * For more information about the AGPL license, visit: <https://www.gnu.org/licenses/agpl-3.0.html>.
  */
 
-
-
 #include <iostream>
 
+#include "Matrix.h"
 
 /**
  * @brief Entry point of the program.
- * 
- * This function prints "Hello, World!" to the standard output.
- * 
+ *
+ * This program demonstrates the use of the Matrix class template.
+ *
  * @return int Returns 0 upon successful execution.
  */
-auto main() -> int {
-    std::cout << "Hello, World!" << '\n';
+auto main() -> int
+{
+    try {
+        Matrix<2, 2, int> matrix1{{1, 0}, {0, 1}};
+        matrix1 *= 2;
+        std::cout << "Matrix 1:\n" << matrix1 << '\n';
+
+        Matrix<2, 2, int> matrix2{{1, 2}, {3, 4}};
+        std::cout << "Matrix 2:\n" << matrix2 << '\n';
+
+        Matrix<2, 2, int> matrix3{};
+        matrix3 = matrix1 * matrix2;
+        std::cout << "Matrix 3 (Matrix 1 + Matrix 2):\n" << matrix3 << '\n';
+    } catch (const std::exception& e) {
+        std::cerr << "An error occurred: " << e.what() << '\n';
+        return 1;
+    }
     return 0;
 }
