@@ -1,6 +1,7 @@
 .hidden/
 
 build/
+coverage/
 html/
 
 compile_commands.json

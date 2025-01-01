@@ -14,9 +14,7 @@ file(GLOB_RECURSE SOURCES "src/*.cpp")
 add_executable(NL-NumEngine ${SOURCES} "main.cpp")
 
 # Include directories
-target_include_directories(NL-NumEngine PUBLIC
-    ${PROJECT_SOURCE_DIR}/include
-)
+target_include_directories(NL-NumEngine PUBLIC ${PROJECT_SOURCE_DIR}/include)
 
 # Add Google Test
 enable_testing()
@@ -29,9 +27,7 @@ file(GLOB_RECURSE TEST_SOURCES "tests/*.cpp")
 # Create the test executable and include the source files (except main.cpp)
 add_executable(runTests ${TEST_SOURCES} ${SOURCES})
 
-target_include_directories(runTests PUBLIC
-    ${PROJECT_SOURCE_DIR}/include
-)
+target_include_directories(runTests PUBLIC ${PROJECT_SOURCE_DIR}/include)
 
 # Link the test executable with Google Test and pthread
 target_link_libraries(runTests ${GTEST_LIBRARIES} pthread)
