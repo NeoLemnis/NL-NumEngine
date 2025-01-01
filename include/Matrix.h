@@ -1,327 +1,238 @@
 #ifndef MATRIX_H
 #define MATRIX_H
 
-#include <array>
-#include <cstddef>
-#include <initializer_list>
-#include <stdexcept>
+#include <iomanip>
 #include <iostream>
+#include <stdexcept>
+#include <vector>
 
 /**
- * @brief A template class for a 2D matrix.
+ * @brief A class for a 2D matrix.
  *
- * @tparam m Number of rows.
- * @tparam n Number of columns.
  * @tparam T Type of the elements.
  */
-template <size_t m, size_t n, typename T>
-class Matrix
-{
+template <typename T> class Matrix {
 private:
-    std::array<std::array<T, n>, m> data; ///< 2D array to store matrix elements.
+  std::vector<std::vector<T>> data;
+  size_t rows;
+  size_t cols;
 
 public:
-    /**
-     * @brief Default constructor.
-     */
-    Matrix() = default;
+  /**
+   * @brief Default constructor.
+   */
+  Matrix() : rows(0), cols(0) {}
 
-    /**
-     * @brief Constructor with initializer list.
-     *
-     * @param list Initializer list to initialize the matrix.
-     */
-    Matrix(std::initializer_list<std::initializer_list<T>> list)
-    {
-        if (list.size() != m)
-        {
-            throw std::invalid_argument("Invalid number of rows");
+  /**
+   * @brief Constructor with dimensions.
+   *
+   * @param rows Number of rows.
+   * @param cols Number of columns.
+   */
+  Matrix(size_t rows, size_t cols)
+      : rows(rows), cols(cols), data(rows, std::vector<T>(cols)) {}
+
+  /**
+   * @brief Constructor with initializer list.
+   *
+   * @param list Initializer list to initialize the matrix.
+   */
+  Matrix(std::initializer_list<std::initializer_list<T>> list)
+      : rows(list.size()), cols(list.begin()->size()) {
+
+    data.resize(rows);
+    size_t rowIdx = 0;
+    for (const auto &row : list) {
+      if (row.size() != cols) {
+        throw std::invalid_argument("Invalid number of columns");
+      }
+      data[rowIdx] = row;
+      ++rowIdx;
+    }
+  }
+
+  /**
+   * @brief Constructor with vector of vectors.
+   *
+   * @param vec Vector of vectors to initialize the matrix.
+   */
+  Matrix(const std::vector<std::vector<T>> &vec)
+      : rows(vec.size()), cols(vec.empty() ? 0 : vec[0].size()), data(vec) {}
+
+  /**
+   * @brief Access element at specified position.
+   *
+   * @param row Row index.
+   * @param col Column index.
+   * @return T& Reference to the element.
+   * @throws std::out_of_range if the index is out of range.
+   */
+  auto operator()(size_t row, size_t col) -> T & {
+    if (row >= rows || col >= cols) {
+      throw std::out_of_range("Matrix index out of range");
+    }
+    return data[row][col];
+  }
+
+  /**
+   * @brief Access element at specified position (const version).
+   *
+   * @param row Row index.
+   * @param col Column index.
+   * @return const T& Const reference to the element.
+   * @throws std::out_of_range if the index is out of range.
+   */
+  auto operator()(size_t row, size_t col) const -> const T & {
+    if (row >= rows || col >= cols) {
+      throw std::out_of_range("Matrix index out of range");
+    }
+    return data[row][col];
+  }
+
+  /**
+   * @brief Get the number of rows.
+   *
+   * @return size_t Number of rows.
+   */
+  [[nodiscard]] auto getRows() const -> size_t { return rows; }
+
+  /**
+   * @brief Get the number of columns.
+   *
+   * @return size_t Number of columns.
+   */
+  [[nodiscard]] auto getCols() const -> size_t { return cols; }
+
+  auto operator+(const Matrix<T> &other) const -> Matrix<T> {
+    if (rows != other.rows || cols != other.cols) {
+      throw std::invalid_argument("Matrix dimensions must match for addition");
+    }
+    Matrix<T> result(rows, cols);
+    for (size_t i = 0; i < rows; ++i) {
+      for (size_t j = 0; j < cols; ++j) {
+        result(i, j) = data[i][j] + other(i, j);
+      }
+    }
+    return result;
+  }
+
+  auto operator-(const Matrix<T> &other) const -> Matrix<T> {
+    if (rows != other.rows || cols != other.cols) {
+      throw std::invalid_argument(
+          "Matrix dimensions must match for subtraction");
+    }
+    Matrix<T> result(rows, cols);
+    for (size_t i = 0; i < rows; ++i) {
+      for (size_t j = 0; j < cols; ++j) {
+        result(i, j) = data[i][j] - other(i, j);
+      }
+    }
+    return result;
+  }
+
+  auto operator*(const Matrix<T> &other) const -> Matrix<T> {
+    // If the matrix or the other is a scalar
+    if (cols == 1 && rows == 1) {
+      Matrix<T> result(other.rows, other.cols);
+      for (size_t i = 0; i < other.rows; ++i) {
+        for (size_t j = 0; j < other.cols; ++j) {
+          result(i, j) = data[0][0] * other(i, j);
         }
-        size_t rowIdx = 0;
-        for (const auto &row : list)
-        {
-            if (row.size() != n)
-            {
-                throw std::invalid_argument("Invalid number of columns");
-            }
-            size_t colIdx = 0;
-            for (const auto &elem : row)
-            {
-                data.at(rowIdx).at(colIdx) = elem;
-                ++colIdx;
-            }
-            ++rowIdx;
+      }
+      return result;
+    }
+    if (other.cols == 1 && other.rows == 1) {
+      Matrix<T> result(rows, cols);
+      for (size_t i = 0; i < rows; ++i) {
+        for (size_t j = 0; j < cols; ++j) {
+          result(i, j) = data[i][j] * other(0, 0);
         }
+      }
+      return result;
     }
 
-    /**
-     * @brief Access element at specified position.
-     *
-     * @param row Row index.
-     * @param col Column index.
-     * @return T& Reference to the element.
-     * @throws std::out_of_range if the index is out of range.
-     */
-    auto operator()(size_t row, size_t col) -> T &
-    {
-        if (row >= m || col >= n)
-        {
-            throw std::out_of_range("Matrix index out of range");
+    if (cols != other.rows) {
+      throw std::invalid_argument(
+          "Matrix dimensions must match for multiplication");
+    }
+    Matrix<T> result(rows, other.cols);
+    for (size_t i = 0; i < rows; ++i) {
+      for (size_t j = 0; j < other.cols; ++j) {
+        result(i, j) = 0;
+        for (size_t k = 0; k < cols; ++k) {
+          result(i, j) += data[i][k] * other(k, j);
         }
-        return data.at(row).at(col);
+      }
     }
+    return result;
+  }
 
-    /**
-     * @brief Access element at specified position (const version).
-     *
-     * @param row Row index.
-     * @param col Column index.
-     * @return const T& Const reference to the element.
-     * @throws std::out_of_range if the index is out of range.
-     */
-    auto operator()(size_t row, size_t col) const -> const T &
-    {
-        if (row >= m || col >= n)
-        {
-            throw std::out_of_range("Matrix index out of range");
-        }
-        return data.at(row).at(col);
+  auto operator*(T scalar) const -> Matrix<T> {
+    Matrix<T> result(rows, cols);
+    for (size_t i = 0; i < rows; ++i) {
+      for (size_t j = 0; j < cols; ++j) {
+        result(i, j) = data[i][j] * scalar;
+      }
     }
+    return result;
+  }
 
-    /**
-     * @brief Get the number of rows.
-     *
-     * @return constexpr size_t Number of rows.
-     */
-    [[nodiscard]] constexpr auto rows() const noexcept -> size_t
-    {
-        return m;
-    }
+  // Left scalar multiplication
+  friend auto operator*(T scalar, const Matrix<T> &matrix) -> Matrix<T> {
+    return matrix * scalar;
+  }
 
-    /**
-     * @brief Get the number of columns.
-     *
-     * @return constexpr size_t Number of columns.
-     */
-    [[nodiscard]] constexpr auto cols() const noexcept -> size_t
-    {
-        return n;
+  // Scalar multiplication assignment
+  auto operator*=(T scalar) -> Matrix<T> & {
+    for (size_t i = 0; i < rows; ++i) {
+      for (size_t j = 0; j < cols; ++j) {
+        data[i][j] *= scalar;
+      }
     }
+    return *this;
+  }
 
-    /**
-     * @brief Fill the matrix with a specified value.
-     *
-     * @param value Value to fill the matrix with.
-     */
-    void fill(const T &value)
-    {
-        for (auto &row : data)
-        {
-            row.fill(value);
-        }
+  // Matrix addition assignment
+  auto operator+=(const Matrix<T> &other) -> Matrix<T> & {
+    validateDimensions(other, "addition");
+    for (size_t i = 0; i < rows; ++i) {
+      for (size_t j = 0; j < cols; ++j) {
+        data[i][j] += other(i, j);
+      }
     }
+    return *this;
+  }
 
-    /**
-     * @brief Scalar multiplication of the matrix.
-     *
-     * @param scalar The scalar value.
-     * @return Matrix<m, n, T> The result of the scalar multiplication.
-     */
-    auto operator*(const T &scalar) const -> Matrix<m, n, T>
-    {
-        Matrix<m, n, T> result{};
-        for (size_t i = 0; i < m; ++i)
-        {
-            for (size_t j = 0; j < n; ++j)
-            {
-                result(i, j) = data[i][j] * scalar;
-            }
-        }
-        return result;
+  // Matrix subtraction assignment
+  auto operator-=(const Matrix<T> &other) -> Matrix<T> & {
+    validateDimensions(other, "subtraction");
+    for (size_t i = 0; i < rows; ++i) {
+      for (size_t j = 0; j < cols; ++j) {
+        data[i][j] -= other(i, j);
+      }
     }
+    return *this;
+  }
 
-    /**
-     * @brief Scalar multiplication of the matrix.
-     *
-     * @param scalar The scalar value.
-     * @return Matrix<m, n, T>& Reference to this matrix.
-     */
-    auto operator*=(const T &scalar) -> Matrix<m, n, T> &
-    {
-        for (size_t i = 0; i < m; ++i)
-        {
-            for (size_t j = 0; j < n; ++j)
-            {
-                data.at(i).at(j) *= scalar;
-            }
-        }
-        return *this;
+  friend auto operator<<(std::ostream &os, const Matrix<T> &matrix)
+      -> std::ostream & {
+    for (size_t i = 0; i < matrix.rows; ++i) {
+      for (size_t j = 0; j < matrix.cols; ++j) {
+        os << std::setw(8) << matrix(i, j);
+      }
+      os << '\n';
     }
+    return os;
+  }
 
-    /**
-     * @brief Add two matrices.
-     *
-     * @param other The matrix to add.
-     * @return Matrix<m, n, T> The result of the addition.
-     */
-    auto operator+(const Matrix<m, n, T> &other) const -> Matrix<m, n, T>
-    {
-        Matrix<m, n, T> result{};
-        for (size_t i = 0; i < m; ++i)
-        {
-            for (size_t j = 0; j < n; ++j)
-            {
-                result(i, j) = data.at(i).at(j) + other(i, j);
-            }
-        }
-        return result;
+private:
+  void validateDimensions(const Matrix<T> &other,
+                          const std::string &operation) const {
+    if (rows != other.rows || cols != other.cols) {
+      throw std::invalid_argument("Matrix dimensions must match for " +
+                                  operation);
     }
-
-    /**
-     * @brief Add another matrix to this matrix.
-     *
-     * @param other The matrix to add.
-     * @return Matrix<m, n, T>& Reference to this matrix.
-     */
-    auto operator+=(const Matrix<m, n, T> &other) -> Matrix<m, n, T> &
-    {
-        for (size_t i = 0; i < m; ++i)
-        {
-            for (size_t j = 0; j < n; ++j)
-            {
-                data[i][j] += other(i, j);
-            }
-        }
-        return *this;
-    }
-
-    /**
-     * @brief Subtract one matrix from another.
-     *
-     * @param other The matrix to subtract.
-     * @return Matrix<m, n, T> The result of the subtraction.
-     */
-    auto operator-(const Matrix<m, n, T> &other) const -> Matrix<m, n, T>
-    {
-        Matrix<m, n, T> result{};
-        for (size_t i = 0; i < m; ++i)
-        {
-            for (size_t j = 0; j < n; ++j)
-            {
-                result(i, j) = data[i][j] - other(i, j);
-            }
-        }
-        return result;
-    }
-
-    /**
-     * @brief Subtract another matrix from this matrix.
-     *
-     * @param other The matrix to subtract.
-     * @return Matrix<m, n, T>& Reference to this matrix.
-     */
-    auto operator-=(const Matrix<m, n, T> &other) -> Matrix<m, n, T> &
-    {
-        for (size_t i = 0; i < m; ++i)
-        {
-            for (size_t j = 0; j < n; ++j)
-            {
-                data[i][j] -= other(i, j);
-            }
-        }
-        return *this;
-    }
-
-    /**
-     * @brief Multiply two matrices.
-     *
-     * @tparam p Number of columns in the other matrix.
-     * @param other The matrix to multiply with.
-     * @return Matrix<m, p, T> The result of the multiplication.
-     */
-    template <size_t p>
-    auto operator*(const Matrix<n, p, T> &other) const -> Matrix<m, p, T>
-    {
-        Matrix<m, p, T> result{};
-        for (size_t i = 0; i < m; ++i)
-        {
-            for (size_t j = 0; j < p; ++j)
-            {
-                for (size_t k = 0; k < n; ++k)
-                {
-                    result(i, j) += data.at(i).at(k) * other(k, j);
-                }
-            }
-        }
-        return result;
-    }
-
-    /**
-     * @brief Multiply this matrix by another matrix.
-     *
-     * @tparam p Number of columns in the other matrix.
-     * @param other The matrix to multiply with.
-     * @return Matrix<m, p, T>& Reference to this matrix.
-     */
-    template <size_t p>
-    auto operator*=(const Matrix<n, p, T> &other) -> Matrix<m, p, T> &
-    {
-        *this = *this * other;
-        return *this;
-    }
-
-    /**
-     * @brief Compare two matrices for equality.
-     *
-     * @param other The matrix to compare with.
-     * @return bool True if the matrices are equal, false otherwise.
-     */
-    auto operator==(const Matrix<m, n, T> &other) const -> bool
-    {
-        return data == other.data;
-    }
-
-    /**
-     * @brief Compare two matrices for inequality.
-     *
-     * @param other The matrix to compare with.
-     * @return bool True if the matrices are not equal, false otherwise.
-     */
-    auto operator!=(const Matrix<m, n, T> &other) const -> bool
-    {
-        return !(*this == other);
-    }
-
-    /**
-     * @brief Get the matrix data as a 2D array.
-     *
-     * @return std::array<std::array<T, n>, m> The matrix data.
-     * @note This function is mainly for testing purposes.
-     */
-    [[nodiscard]] auto to_array() const -> std::array<std::array<T, n>, m>
-    {
-        return data;
-    }
-
-    /**
-     * @brief Output the matrix to an output stream.
-     *
-     * @param outStream The output stream.
-     * @param matrix The matrix to output.
-     * @return std::ostream& The output stream.
-     */
-    friend auto operator<<(std::ostream &outStream, const Matrix &matrix) -> std::ostream &
-    {
-        for (const auto &row : matrix.data)
-        {
-            for (const auto &elem : row)
-            {
-                outStream << elem << ' ';
-            }
-            outStream << '\n';
-        }
-        return outStream;
-    }
+  }
 };
 
 #endif // MATRIX_H
